@@ -1,6 +1,7 @@
 import {
     main_api,
     saveSettingsDebounced,
+    callPopup,
 } from '../script.js';
 import { power_user } from './power-user.js';
 //import { BIAS_CACHE, displayLogitBias, getLogitBiasListResult } from './logit-bias.js';
@@ -8,8 +9,6 @@ import { power_user } from './power-user.js';
 //import { getSortableDelay, onlyUnique } from './utils.js';
 //import { getCfgPrompt } from './cfg-scale.js';
 import { setting_names } from './textgen-settings.js';
-import { renderTemplateAsync } from './templates.js';
-import { Popup, POPUP_TYPE } from './popup.js';
 
 
 const TGsamplerNames = setting_names;
@@ -21,17 +20,37 @@ let userDisabledSamplers, userShownSamplers;
 
 // Goal 1: show popup with all samplers for active API
 async function showSamplerSelectPopup() {
+    const popup = $('#dialogue_popup');
+    popup.addClass('large_dialogue_popup');
     const html = $(document.createElement('div'));
     html.attr('id', 'sampler_view_list')
         .addClass('flex-container flexFlowColumn');
-    html.append(await renderTemplateAsync('samplerSelector'));
+    html.append(`
+    <div class="title_restorable flexFlowColumn alignItemsBaseline">
+        <div class="flex-container justifyCenter">
+            <h3>Sampler Select</h3>
+            <div class="flex-container alignItemsBaseline">
+            <div id="resetSelectedSamplers" class="menu_button menu_button_icon" title="Reset custom sampler selection">
+                <i class="fa-solid fa-recycle"></i>
+            </div>
+        </div>
+            <!--<div class="flex-container alignItemsBaseline">
+                <div class="menu_button menu_button_icon" title="Create a new sampler">
+                    <i class="fa-solid fa-plus"></i>
+                    <span data-i18n="Create">Create</span>
+                </div>
+            </div>-->
+        </div>
+        <small>Here you can toggle the display of individual samplers. (WIP)</small>
+    </div>
+    <hr>`);
 
     const listContainer = $('<div id="apiSamplersList" class="flex-container flexNoGap"></div>');
     const APISamplers = await listSamplers(main_api);
     listContainer.append(APISamplers);
     html.append(listContainer);
 
-    const showPromise = new Popup(html, POPUP_TYPE.TEXT, null, { wide: true, large: true, allowVerticalScrolling: true }).show();
+    callPopup(html, 'text', null, { allowVerticalScrolling: true });
 
     setSamplerListListeners();
 
@@ -52,8 +71,6 @@ async function showSamplerSelectPopup() {
         power_user.selectSamplers.forceHidden = [];
         await validateDisabledSamplers();
     });
-
-    await showPromise;
 }
 
 function setSamplerListListeners() {
@@ -87,11 +104,6 @@ function setSamplerListListeners() {
 
         if (samplerName === 'dry_multiplier') {
             relatedDOMElement = $('#dryBlock');
-            targetDisplayType = 'block';
-        }
-
-        if (samplerName === 'xtc_probability') {
-            relatedDOMElement = $('#xtc_block');
             targetDisplayType = 'block';
         }
 
@@ -253,10 +265,6 @@ async function listSamplers(main_api, arrayOnly = false) {
             targetDOMelement = $('#dryBlock');
             displayname = 'DRY Rep Pen Block';
         }
-        if (sampler === 'xtc_probability') {
-            targetDOMelement = $('#xtc_block');
-            displayname = 'XTC Block';
-        }
 
         if (sampler === 'dynatemp') {
             targetDOMelement = $('#dynatemp_block_ooba');
@@ -380,11 +388,6 @@ export async function validateDisabledSamplers(redraw = false) {
 
         if (sampler === 'dry_multiplier') {
             relatedDOMElement = $('#dryBlock');
-            targetDisplayType = 'block';
-        }
-
-        if (sampler === 'xtc_probability') {
-            relatedDOMElement = $('#xtc_block');
             targetDisplayType = 'block';
         }
 

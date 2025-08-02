@@ -4,16 +4,15 @@ import path from 'node:path';
 import express from 'express';
 import sanitize from 'sanitize-filename';
 
-import { dimensions, invalidateThumbnail } from './thumbnails.js';
+import { invalidateThumbnail } from './thumbnails.js';
 import { getImages } from '../util.js';
 import { getFileNameValidationFunction } from '../middleware/validateFileName.js';
 
 export const router = express.Router();
 
 router.post('/all', function (request, response) {
-    const images = getImages(request.user.directories.backgrounds);
-    const config = { width: dimensions.bg[0], height: dimensions.bg[1] };
-    response.json({ images, config });
+    var images = getImages(request.user.directories.backgrounds);
+    response.send(JSON.stringify(images));
 });
 
 router.post('/delete', getFileNameValidationFunction('bg'), function (request, response) {
@@ -31,7 +30,7 @@ router.post('/delete', getFileNameValidationFunction('bg'), function (request, r
         return response.sendStatus(400);
     }
 
-    fs.unlinkSync(fileName);
+    fs.rmSync(fileName);
     invalidateThumbnail(request.user.directories, 'bg', request.body.bg);
     return response.send('ok');
 });
@@ -53,7 +52,7 @@ router.post('/rename', function (request, response) {
     }
 
     fs.copyFileSync(oldFileName, newFileName);
-    fs.unlinkSync(oldFileName);
+    fs.rmSync(oldFileName);
     invalidateThumbnail(request.user.directories, 'bg', request.body.old_bg);
     return response.send('ok');
 });
@@ -66,7 +65,7 @@ router.post('/upload', function (request, response) {
 
     try {
         fs.copyFileSync(img_path, path.join(request.user.directories.backgrounds, filename));
-        fs.unlinkSync(img_path);
+        fs.rmSync(img_path);
         invalidateThumbnail(request.user.directories, 'bg', filename);
         response.send(filename);
     } catch (err) {

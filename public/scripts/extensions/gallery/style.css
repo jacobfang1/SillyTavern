@@ -43,8 +43,3 @@
 #dragGallery {
     min-height: 25dvh;
 }
-
-#gallery .right_menu_button.warning {
-    opacity: 1;
-    filter: unset;
-}

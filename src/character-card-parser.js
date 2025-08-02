@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { Buffer } from 'node:buffer';
 
-import encode from './png/encode.js';
+import encode from 'png-chunks-encode';
 import extract from 'png-chunks-extract';
 import PNGtext from 'png-chunk-text';
 
@@ -81,9 +81,9 @@ export const read = (image) => {
  * Parses a card image and returns the character metadata.
  * @param {string} cardUrl Path to the card image
  * @param {string} format File format
- * @returns {Promise<string>} Character data
+ * @returns {string} Character data
  */
-export const parse = async (cardUrl, format) => {
+export const parse = (cardUrl, format) => {
     let fileFormat = format === undefined ? 'png' : format;
 
     switch (fileFormat) {

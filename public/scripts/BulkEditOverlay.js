@@ -2,6 +2,7 @@
 
 import {
     characterGroupOverlay,
+    callPopup,
     characters,
     event_types,
     eventSource,
@@ -16,7 +17,6 @@ import {
 import { favsToHotswap } from './RossAscends-mods.js';
 import { hideLoader, showLoader } from './loader.js';
 import { convertCharacterToPersona } from './personas.js';
-import { callGenericPopup, POPUP_TYPE } from './popup.js';
 import { createTagInput, getTagKeyForEntity, getTagsList, printTagList, tag_map, compareTagsForSort, removeTagFromMap, importTags, tag_import_setting } from './tags.js';
 
 /**
@@ -835,13 +835,12 @@ class BulkEditOverlay {
      */
     handleContextMenuDelete = () => {
         const characterIds = this.selectedCharacters;
-        const popupContent = $(BulkEditOverlay.#getDeletePopupContentHtml(characterIds));
-        const checkbox = popupContent.find('#del_char_checkbox');
-        const promise = callGenericPopup(popupContent, POPUP_TYPE.CONFIRM)
+        const popupContent = BulkEditOverlay.#getDeletePopupContentHtml(characterIds);
+        const promise = callPopup(popupContent, null)
             .then((accept) => {
-                if (!accept) return;
+                if (true !== accept) return;
 
-                const deleteChats = checkbox.prop('checked') ?? false;
+                const deleteChats = document.getElementById('del_char_checkbox').checked ?? false;
 
                 showLoader();
                 const toast = toastr.info('We\'re deleting your characters, please wait...', 'Working on it');

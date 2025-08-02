@@ -40,7 +40,6 @@ export const enumIcons = {
     server: '🖥️',
     popup: '🗔',
     image: '🖼️',
-    key: '🔑',
 
     true: '✔️',
     false: '❌',

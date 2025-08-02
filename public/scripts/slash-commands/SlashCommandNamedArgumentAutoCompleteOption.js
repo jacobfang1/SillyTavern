@@ -1,10 +1,11 @@
 import { AutoCompleteOption } from '../autocomplete/AutoCompleteOption.js';
 import { SlashCommand } from './SlashCommand.js';
 import { SlashCommandNamedArgument } from './SlashCommandArgument.js';
+import { SlashCommandNamedArgumentAssignment } from './SlashCommandNamedArgumentAssignment.js';
 
 export class SlashCommandNamedArgumentAutoCompleteOption extends AutoCompleteOption {
-    /** @type {SlashCommandNamedArgument} */ arg;
-    /** @type {SlashCommand} */ cmd;
+    /**@type {SlashCommandNamedArgument}*/ arg;
+    /**@type {SlashCommand}*/ cmd;
 
     /**
      * @param {SlashCommandNamedArgument} arg

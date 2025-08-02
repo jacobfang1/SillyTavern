@@ -1,6 +1,6 @@
 import { hljs } from '../../lib.js';
 import { power_user } from '../power-user.js';
-import { isFalseBoolean, isTrueBoolean, uuidv4 } from '../utils.js';
+import { isTrueBoolean, uuidv4 } from '../utils.js';
 import { SlashCommand } from './SlashCommand.js';
 import { ARGUMENT_TYPE, SlashCommandArgument } from './SlashCommandArgument.js';
 import { SlashCommandClosure } from './SlashCommandClosure.js';
@@ -8,9 +8,11 @@ import { SlashCommandExecutor } from './SlashCommandExecutor.js';
 import { SlashCommandParserError } from './SlashCommandParserError.js';
 import { AutoCompleteNameResult } from '../autocomplete/AutoCompleteNameResult.js';
 import { SlashCommandQuickReplyAutoCompleteOption } from './SlashCommandQuickReplyAutoCompleteOption.js';
+// eslint-disable-next-line no-unused-vars
 import { SlashCommandScope } from './SlashCommandScope.js';
 import { SlashCommandVariableAutoCompleteOption } from './SlashCommandVariableAutoCompleteOption.js';
 import { SlashCommandNamedArgumentAssignment } from './SlashCommandNamedArgumentAssignment.js';
+// eslint-disable-next-line no-unused-vars
 import { SlashCommandAbortController } from './SlashCommandAbortController.js';
 import { SlashCommandAutoCompleteNameResult } from './SlashCommandAutoCompleteNameResult.js';
 import { SlashCommandUnnamedArgumentAssignment } from './SlashCommandUnnamedArgumentAssignment.js';
@@ -26,18 +28,16 @@ import { t } from '../i18n.js';
 /** @typedef {import('./SlashCommand.js').NamedArgumentsCapture} NamedArgumentsCapture */
 /** @typedef {import('./SlashCommand.js').NamedArguments} NamedArguments */
 
-/**
- * @enum {Number}
- * @readonly
- * @typedef {{[id:PARSER_FLAG]:boolean}} ParserFlags
- */
+/**@readonly*/
+/**@enum {Number}*/
 export const PARSER_FLAG = {
     'STRICT_ESCAPING': 1,
     'REPLACE_GETVAR': 2,
 };
 
 export class SlashCommandParser {
-    /** @type {Object.<string, SlashCommand>} */ static commands = {};
+    // @ts-ignore
+    /**@type {Object.<string, SlashCommand>}*/ static commands = {};
 
     /**
      * @deprecated Use SlashCommandParser.addCommandObject() instead.
@@ -101,25 +101,26 @@ export class SlashCommandParser {
     get commands() {
         return SlashCommandParser.commands;
     }
-    /** @type {Object.<string, string>} */ helpStrings = {};
-    /** @type {boolean} */ verifyCommandNames = true;
-    /** @type {string} */ text;
-    /** @type {number} */ index;
-    /** @type {SlashCommandAbortController} */ abortController;
-    /** @type {SlashCommandDebugController} */ debugController;
-    /** @type {SlashCommandScope} */ scope;
-    /** @type {SlashCommandClosure} */ closure;
+    // @ts-ignore
+    /**@type {Object.<string, string>}*/ helpStrings = {};
+    /**@type {boolean}*/ verifyCommandNames = true;
+    /**@type {string}*/ text;
+    /**@type {number}*/ index;
+    /**@type {SlashCommandAbortController}*/ abortController;
+    /**@type {SlashCommandDebugController}*/ debugController;
+    /**@type {SlashCommandScope}*/ scope;
+    /**@type {SlashCommandClosure}*/ closure;
 
-    /** @type {Object.<PARSER_FLAG,boolean>} */ flags = {};
+    /**@type {Object.<PARSER_FLAG,boolean>}*/ flags = {};
 
-    /** @type {boolean} */ jumpedEscapeSequence = false;
+    /**@type {boolean}*/ jumpedEscapeSequence = false;
 
-    /** @type {{start:number, end:number}[]} */ closureIndex;
-    /** @type {{start:number, end:number, name:string}[]} */ macroIndex;
-    /** @type {SlashCommandExecutor[]} */ commandIndex;
-    /** @type {SlashCommandScope[]} */ scopeIndex;
+    /**@type {{start:number, end:number}[]}*/ closureIndex;
+    /**@type {{start:number, end:number, name:string}[]}*/ macroIndex;
+    /**@type {SlashCommandExecutor[]}*/ commandIndex;
+    /**@type {SlashCommandScope[]}*/ scopeIndex;
 
-    /** @type {string} */ parserContext;
+    /**@type {string}*/ parserContext;
 
     get userIndex() { return this.index; }
 
@@ -516,14 +517,12 @@ export class SlashCommandParser {
                     ?? []
                 ;
                 try {
-                    if ('quickReplyApi' in globalThis) {
-                        const qrApi = globalThis.quickReplyApi;
-                        options.push(...qrApi.listSets()
-                            .map(set=>qrApi.listQuickReplies(set).map(qr=>`${set}.${qr}`))
-                            .flat()
-                            .map(qr=>new SlashCommandQuickReplyAutoCompleteOption(qr)),
-                        );
-                    }
+                    const qrApi = (await import('../extensions/quick-reply/index.js')).quickReplyApi;
+                    options.push(...qrApi.listSets()
+                        .map(set=>qrApi.listQuickReplies(set).map(qr=>`${set}.${qr}`))
+                        .flat()
+                        .map(qr=>new SlashCommandQuickReplyAutoCompleteOption(qr)),
+                    );
                 } catch { /* empty */ }
                 const result = new AutoCompleteNameResult(
                     executor.unnamedArgumentList[0]?.value.toString(),
@@ -637,7 +636,6 @@ export class SlashCommandParser {
     replaceGetvar(value) {
         return value.replace(/{{(get(?:global)?var)::([^}]+)}}/gi, (match, cmd, name, idx) => {
             name = name.trim();
-            cmd = cmd.toLowerCase();
             const startIdx = this.index - value.length + idx;
             const endIdx = this.index - value.length + idx + match.length;
             // store pipe
@@ -978,9 +976,7 @@ export class SlashCommandParser {
         cmd.startUnnamedArgs = this.index - (/\s(\s*)$/s.exec(this.behind)?.[1]?.length ?? 0);
         cmd.endUnnamedArgs = this.index;
         if (this.testUnnamedArgument()) {
-            const rawQuotesArg = cmd?.namedArgumentList?.find(a => a.name === 'raw');
-            const rawQuotes = cmd?.command?.rawQuotes && rawQuotesArg ? !isFalseBoolean(rawQuotesArg?.value?.toString()) : cmd?.command?.rawQuotes;
-            cmd.unnamedArgumentList = this.parseUnnamedArgument(cmd.command?.unnamedArgumentList?.length && cmd?.command?.splitUnnamedArgument, cmd?.command?.splitUnnamedArgumentCount, rawQuotes);
+            cmd.unnamedArgumentList = this.parseUnnamedArgument(cmd.command?.unnamedArgumentList?.length && cmd?.command?.splitUnnamedArgument, cmd?.command?.splitUnnamedArgumentCount);
             cmd.endUnnamedArgs = this.index;
             if (cmd.name == 'let') {
                 const keyArg = cmd.namedArgumentList.find(it=>it.name == 'key');
@@ -1040,7 +1036,7 @@ export class SlashCommandParser {
     testUnnamedArgumentEnd() {
         return this.testCommandEnd();
     }
-    parseUnnamedArgument(split, splitCount = null, rawQuotes = false) {
+    parseUnnamedArgument(split, splitCount = null) {
         const wasSplit = split;
         /**@type {SlashCommandClosure|String}*/
         let value = this.jumpedEscapeSequence ? this.take() : ''; // take the first, already tested, char if it is an escaped one
@@ -1050,7 +1046,7 @@ export class SlashCommandParser {
         /**@type {SlashCommandUnnamedArgumentAssignment}*/
         let assignment = new SlashCommandUnnamedArgumentAssignment();
         assignment.start = this.index;
-        if (!split && !rawQuotes && this.testQuotedValue()) {
+        if (!split && this.testQuotedValue()) {
             // if the next bit is a quoted value, take the whole value and gather contents as a list
             assignment.value = this.parseQuotedValue();
             assignment.end = this.index;

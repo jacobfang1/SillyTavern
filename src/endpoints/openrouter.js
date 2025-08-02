@@ -1,5 +1,4 @@
 import express from 'express';
-import fetch from 'node-fetch';
 
 export const router = express.Router();
 const API_OPENROUTER = 'https://openrouter.ai/api/v1';
@@ -18,7 +17,6 @@ router.post('/models/providers', async (req, res) => {
             return res.json([]);
         }
 
-        /** @type {any} */
         const data = await response.json();
         const endpoints = data?.data?.endpoints || [];
         const providerNames = endpoints.map(e => e.provider_name);
@@ -44,7 +42,6 @@ router.post('/models/multimodal', async (_req, res) => {
             return res.json([]);
         }
 
-        /** @type {any} */
         const data = await response.json();
         const models = data?.data || [];
         const multimodalModels = models.filter(m => m?.architecture?.modality === 'text+image->text').map(m => m.id);

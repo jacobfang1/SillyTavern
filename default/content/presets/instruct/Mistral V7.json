@@ -6,7 +6,7 @@
     "stop_sequence": "</s>",
     "wrap": false,
     "macro": true,
-    "names_behavior": "force",
+    "names_behavior": "always",
     "activation_regex": "",
     "system_sequence_prefix": "",
     "system_sequence_suffix": "",

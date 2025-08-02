@@ -18,7 +18,6 @@ export const USER_DIRECTORY_TEMPLATE = Object.freeze({
     thumbnails: 'thumbnails',
     thumbnailsBg: 'thumbnails/bg',
     thumbnailsAvatar: 'thumbnails/avatar',
-    thumbnailsPersona: 'thumbnails/persona',
     worlds: 'worlds',
     user: 'user',
     avatars: 'User Avatars',
@@ -44,7 +43,6 @@ export const USER_DIRECTORY_TEMPLATE = Object.freeze({
     vectors: 'vectors',
     backups: 'backups',
     sysprompt: 'sysprompt',
-    reasoning: 'reasoning',
 });
 
 /**
@@ -157,28 +155,27 @@ export const GEMINI_SAFETY = [
     },
     {
         category: 'HARM_CATEGORY_CIVIC_INTEGRITY',
-        threshold: 'OFF',
+        threshold: 'BLOCK_NONE',
     },
 ];
 
 export const CHAT_COMPLETION_SOURCES = {
     OPENAI: 'openai',
+    WINDOWAI: 'windowai',
     CLAUDE: 'claude',
+    SCALE: 'scale',
     OPENROUTER: 'openrouter',
     AI21: 'ai21',
     MAKERSUITE: 'makersuite',
-    VERTEXAI: 'vertexai',
     MISTRALAI: 'mistralai',
     CUSTOM: 'custom',
     COHERE: 'cohere',
     PERPLEXITY: 'perplexity',
     GROQ: 'groq',
     ZEROONEAI: '01ai',
+    BLOCKENTROPY: 'blockentropy',
     NANOGPT: 'nanogpt',
     DEEPSEEK: 'deepseek',
-    AIMLAPI: 'aimlapi',
-    XAI: 'xai',
-    POLLINATIONS: 'pollinations',
 };
 
 /**
@@ -270,6 +267,23 @@ export const FEATHERLESS_KEYS = [
     'guided_whitespace_pattern',
 ];
 
+// https://dreamgen.com/docs/api#openai-text
+export const DREAMGEN_KEYS = [
+    'model',
+    'prompt',
+    'max_tokens',
+    'temperature',
+    'top_p',
+    'top_k',
+    'min_p',
+    'repetition_penalty',
+    'frequency_penalty',
+    'presence_penalty',
+    'stop',
+    'stream',
+    'minimum_message_content_tokens',
+];
+
 // https://docs.together.ai/reference/completions
 export const TOGETHERAI_KEYS = [
     'model',
@@ -286,7 +300,7 @@ export const TOGETHERAI_KEYS = [
     'stop',
 ];
 
-// https://github.com/ollama/ollama/blob/main/docs/api.md#request-8
+// https://github.com/jmorganca/ollama/blob/main/docs/api.md#request-with-options
 export const OLLAMA_KEYS = [
     'num_predict',
     'num_ctx',
@@ -302,6 +316,9 @@ export const OLLAMA_KEYS = [
     'typical_p',
     'seed',
     'repeat_last_n',
+    'mirostat',
+    'mirostat_tau',
+    'mirostat_eta',
     'min_p',
 ];
 
@@ -325,14 +342,8 @@ export const OPENAI_KEYS = [
 
 export const AVATAR_WIDTH = 512;
 export const AVATAR_HEIGHT = 768;
-export const DEFAULT_AVATAR_PATH = './public/img/ai4.png';
 
 export const OPENROUTER_HEADERS = {
-    'HTTP-Referer': 'https://sillytavern.app',
-    'X-Title': 'SillyTavern',
-};
-
-export const AIMLAPI_HEADERS = {
     'HTTP-Referer': 'https://sillytavern.app',
     'X-Title': 'SillyTavern',
 };
@@ -411,26 +422,3 @@ export const LOG_LEVELS = {
     WARN: 2,
     ERROR: 3,
 };
-
-/**
- * An array of supported media file extensions.
- * This is used to validate file uploads and ensure that only supported media types are processed.
- */
-export const MEDIA_EXTENSIONS = [
-    'bmp',
-    'png',
-    'jpg',
-    'webp',
-    'jpeg',
-    'jfif',
-    'gif',
-    'mp4',
-    'avi',
-    'mov',
-    'wmv',
-    'flv',
-    'webm',
-    '3gp',
-    'mkv',
-    'mpg',
-];

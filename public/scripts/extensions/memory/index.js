@@ -16,7 +16,6 @@ import {
     getMaxContextSize,
     setExtensionPrompt,
     streamingProcessor,
-    animation_easing,
 } from '../../../script.js';
 import { is_group_generating, selected_group } from '../../group-chats.js';
 import { loadMovingUIState } from '../../power-user.js';
@@ -29,7 +28,6 @@ import { ARGUMENT_TYPE, SlashCommandArgument, SlashCommandNamedArgument } from '
 import { MacrosParser } from '../../macros.js';
 import { countWebLlmTokens, generateWebLlmChatPrompt, getWebLlmContextSize, isWebLlmSupported } from '../shared.js';
 import { commonEnumProviders } from '../../slash-commands/SlashCommandCommonEnumsProvider.js';
-import { removeReasoningFromString } from '../../reasoning.js';
 export { MODULE_NAME };
 
 const MODULE_NAME = '1_memory';
@@ -506,7 +504,7 @@ async function summarizeCallback(args, text) {
             case summary_sources.extras:
                 return await callExtrasSummarizeAPI(text);
             case summary_sources.main:
-                return removeReasoningFromString(await generateRaw({ prompt: text, systemPrompt: prompt, responseLength: extension_settings.memory.overrideResponseLength }));
+                return await generateRaw(text, '', false, false, prompt, extension_settings.memory.overrideResponseLength);
             case summary_sources.webllm: {
                 const messages = [{ role: 'system', content: prompt }, { role: 'user', content: text }].filter(m => m.content);
                 const params = extension_settings.memory.overrideResponseLength > 0 ? { max_tokens: extension_settings.memory.overrideResponseLength } : {};
@@ -677,13 +675,7 @@ async function summarizeChatMain(context, force, skipWIAN) {
     if (prompt_builders.DEFAULT === extension_settings.memory.prompt_builder) {
         try {
             inApiCall = true;
-            /** @type {import('../../../script.js').GenerateQuietPromptParams} */
-            const params = {
-                quietPrompt: prompt,
-                skipWIAN: skipWIAN,
-                responseLength: extension_settings.memory.overrideResponseLength,
-            };
-            summary = await generateQuietPrompt(params);
+            summary = await generateQuietPrompt(prompt, false, skipWIAN, '', '', extension_settings.memory.overrideResponseLength);
         } finally {
             inApiCall = false;
         }
@@ -707,14 +699,7 @@ async function summarizeChatMain(context, force, skipWIAN) {
                 return null;
             }
 
-            /** @type {import('../../../script.js').GenerateRawParams} */
-            const params = {
-                prompt: rawPrompt,
-                systemPrompt: prompt,
-                responseLength: extension_settings.memory.overrideResponseLength,
-            };
-            const rawSummary = await generateRaw(params);
-            summary = removeReasoningFromString(rawSummary);
+            summary = await generateRaw(rawPrompt, '', false, false, prompt, extension_settings.memory.overrideResponseLength);
             index = lastUsedIndex;
         } finally {
             inApiCall = false;
@@ -985,7 +970,6 @@ function doPopout(e) {
     </div>`;
         const newElement = $(template);
         newElement.attr('id', 'summaryExtensionPopout')
-            .css('opacity', 0)
             .removeClass('zoomed_avatar')
             .addClass('draggable')
             .empty();
@@ -994,13 +978,13 @@ function doPopout(e) {
         originalElement.html('<div class="flex-container alignitemscenter justifyCenter wide100p"><small>Currently popped out</small></div>');
         newElement.append(controlBarHtml).append(originalHTMLClone);
         $('body').append(newElement);
-        newElement.transition({ opacity: 1, duration: animation_duration, easing: animation_easing });
         $('#summaryExtensionDrawerContents').addClass('scrollableInnerFull');
         setMemoryContext(prevSummaryBoxContents, false); //paste prev summary box contents into popout box
         setupListeners();
         loadSettings();
         loadMovingUIState();
 
+        $('#summaryExtensionPopout').fadeIn(animation_duration);
         dragElement(newElement);
 
         //setup listener for close button to restore extensions menu

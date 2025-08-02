@@ -8,7 +8,7 @@
     "stop_sequence": "<|end_of_text|>",
     "wrap": false,
     "macro": true,
-    "names_behavior": "force",
+    "names_behavior": "always",
     "activation_regex": "",
     "skip_examples": false,
     "output_suffix": "<|end_of_text|>\n",

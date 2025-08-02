@@ -3,7 +3,6 @@ import path from 'node:path';
 import { Buffer } from 'node:buffer';
 
 import express from 'express';
-import fetch from 'node-fetch';
 import { sync as writeFileAtomicSync } from 'write-file-atomic';
 
 import { Tokenizer } from '@agnai/web-tokenizers';
@@ -408,15 +407,11 @@ export function getTokenizerModel(requestModel) {
         return 'o1';
     }
 
-    if (requestModel.includes('o3') || requestModel.includes('o4-mini')) {
-        return 'o1';
-    }
-
     if (requestModel.includes('gpt-4o') || requestModel.includes('chatgpt-4o-latest')) {
         return 'gpt-4o';
     }
 
-    if (requestModel.includes('gpt-4.1') || requestModel.includes('gpt-4.5')) {
+    if (requestModel.includes('gpt-4.5-preview')) {
         return 'gpt-4o';
     }
 
@@ -464,7 +459,7 @@ export function getTokenizerModel(requestModel) {
         return 'deepseek';
     }
 
-    if (requestModel.includes('gemma') || requestModel.includes('gemini') || requestModel.includes('learnlm')) {
+    if (requestModel.includes('gemma') || requestModel.includes('gemini')) {
         return 'gemma';
     }
 
@@ -1025,7 +1020,6 @@ router.post('/remote/kobold/count', async function (request, response) {
             return response.send({ error: true });
         }
 
-        /** @type {any} */
         const data = await result.json();
         const count = data['value'];
         const ids = data['ids'] ?? [];
@@ -1090,7 +1084,6 @@ router.post('/remote/textgenerationwebui/encode', async function (request, respo
             return response.send({ error: true });
         }
 
-        /** @type {any} */
         const data = await result.json();
         const count =  (data?.length ?? data?.count ?? data?.value ?? data?.tokens?.length);
         const ids = (data?.tokens ?? data?.ids ?? []);

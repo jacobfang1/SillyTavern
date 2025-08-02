@@ -5,30 +5,26 @@ import path from 'node:path';
 import mime from 'mime-types';
 import express from 'express';
 import sanitize from 'sanitize-filename';
-import { Jimp, JimpMime } from '../jimp.js';
+import jimp from 'jimp';
 import { sync as writeFileAtomicSync } from 'write-file-atomic';
 
+import { getAllUserHandles, getUserDirectories } from '../users.js';
 import { getConfigValue } from '../util.js';
 
 const thumbnailsEnabled = !!getConfigValue('thumbnails.enabled', true, 'boolean');
 const quality = Math.min(100, Math.max(1, parseInt(getConfigValue('thumbnails.quality', 95, 'number'))));
 const pngFormat = String(getConfigValue('thumbnails.format', 'jpg')).toLowerCase().trim() === 'png';
 
-/**
- * @typedef {'bg' | 'avatar' | 'persona'} ThumbnailType
- */
-
 /** @type {Record<string, number[]>} */
-export const dimensions = {
+const dimensions = {
     'bg': getConfigValue('thumbnails.dimensions.bg', [160, 90]),
     'avatar': getConfigValue('thumbnails.dimensions.avatar', [96, 144]),
-    'persona': getConfigValue('thumbnails.dimensions.persona', [96, 144]),
 };
 
 /**
  * Gets a path to thumbnail folder based on the type.
  * @param {import('../users.js').UserDirectoryList} directories User directories
- * @param {ThumbnailType} type Thumbnail type
+ * @param {'bg' | 'avatar'} type Thumbnail type
  * @returns {string} Path to the thumbnails folder
  */
 function getThumbnailFolder(directories, type) {
@@ -41,9 +37,6 @@ function getThumbnailFolder(directories, type) {
         case 'avatar':
             thumbnailFolder = directories.thumbnailsAvatar;
             break;
-        case 'persona':
-            thumbnailFolder = directories.thumbnailsPersona;
-            break;
     }
 
     return thumbnailFolder;
@@ -52,7 +45,7 @@ function getThumbnailFolder(directories, type) {
 /**
  * Gets a path to the original images folder based on the type.
  * @param {import('../users.js').UserDirectoryList} directories User directories
- * @param {ThumbnailType} type Thumbnail type
+ * @param {'bg' | 'avatar'} type Thumbnail type
  * @returns {string} Path to the original images folder
  */
 function getOriginalFolder(directories, type) {
@@ -65,9 +58,6 @@ function getOriginalFolder(directories, type) {
         case 'avatar':
             originalFolder = directories.characters;
             break;
-        case 'persona':
-            originalFolder = directories.avatars;
-            break;
     }
 
     return originalFolder;
@@ -76,24 +66,24 @@ function getOriginalFolder(directories, type) {
 /**
  * Removes the generated thumbnail from the disk.
  * @param {import('../users.js').UserDirectoryList} directories User directories
- * @param {ThumbnailType} type Type of the thumbnail
+ * @param {'bg' | 'avatar'} type Type of the thumbnail
  * @param {string} file Name of the file
  */
 export function invalidateThumbnail(directories, type, file) {
     const folder = getThumbnailFolder(directories, type);
     if (folder === undefined) throw new Error('Invalid thumbnail type');
 
-    const pathToThumbnail = path.join(folder, sanitize(file));
+    const pathToThumbnail = path.join(folder, file);
 
     if (fs.existsSync(pathToThumbnail)) {
-        fs.unlinkSync(pathToThumbnail);
+        fs.rmSync(pathToThumbnail);
     }
 }
 
 /**
  * Generates a thumbnail for the given file.
  * @param {import('../users.js').UserDirectoryList} directories User directories
- * @param {ThumbnailType} type Type of the thumbnail
+ * @param {'bg' | 'avatar'} type Type of the thumbnail
  * @param {string} file Name of the file
  * @returns
  */
@@ -133,16 +123,14 @@ async function generateThumbnail(directories, type, file) {
 
         try {
             const size = dimensions[type];
-            const image = await Jimp.read(pathToOriginalFile);
+            const image = await jimp.read(pathToOriginalFile);
+            const imgType = type == 'avatar' && pngFormat ? 'image/png' : 'image/jpeg';
             const width = !isNaN(size?.[0]) && size?.[0] > 0 ? size[0] : image.bitmap.width;
             const height = !isNaN(size?.[1]) && size?.[1] > 0 ? size[1] : image.bitmap.height;
-            image.cover({ w: width, h: height });
-            buffer = pngFormat
-                ? await image.getBuffer(JimpMime.png)
-                : await image.getBuffer(JimpMime.jpeg, { quality: quality, jpegColorSpace: 'ycbcr' });
+            buffer = await image.cover(width, height).quality(quality).getBufferAsync(imgType);
         }
         catch (inner) {
-            console.warn(`Thumbnailer can not process the image: ${pathToOriginalFile}. Using original size`, inner);
+            console.warn(`Thumbnailer can not process the image: ${pathToOriginalFile}. Using original size`);
             buffer = fs.readFileSync(pathToOriginalFile);
         }
 
@@ -157,16 +145,17 @@ async function generateThumbnail(directories, type, file) {
 
 /**
  * Ensures that the thumbnail cache for backgrounds is valid.
- * @param {import('../users.js').UserDirectoryList[]} directoriesList User directories
  * @returns {Promise<void>} Promise that resolves when the cache is validated
  */
-export async function ensureThumbnailCache(directoriesList) {
-    for (const directories of directoriesList) {
+export async function ensureThumbnailCache() {
+    const userHandles = await getAllUserHandles();
+    for (const handle of userHandles) {
+        const directories = getUserDirectories(handle);
         const cacheFiles = fs.readdirSync(directories.thumbnailsBg);
 
         // files exist, all ok
         if (cacheFiles.length) {
-            continue;
+            return;
         }
 
         console.info('Generating thumbnails cache. Please wait...');
@@ -199,7 +188,7 @@ router.get('/', async function (request, response) {
             return response.sendStatus(400);
         }
 
-        if (!(type === 'bg' || type === 'avatar' || type === 'persona')) {
+        if (!(type == 'bg' || type == 'avatar')) {
             return response.sendStatus(400);
         }
 

@@ -132,14 +132,9 @@ class NovelTtsProvider {
         return { name: voiceName, voice_id: voiceName, lang: 'en-US', preview_url: false };
     }
 
-    /**
-     * Generate TTS audio for the given text using the specified voice.
-     * @param {string} text Text to generate
-     * @param {string} voiceId Voice ID
-     * @returns {AsyncGenerator<Response>} Audio response generator
-     */
-    generateTts(text, voiceId) {
-        return this.fetchTtsGeneration(text, voiceId);
+    async generateTts(text, voiceId) {
+        const response = await this.fetchTtsGeneration(text, voiceId);
+        return response;
     }
 
     //###########//
@@ -177,17 +172,16 @@ class NovelTtsProvider {
         this.audioElement.currentTime = 0;
 
         const text = getPreviewString('en-US');
-        for await (const response of this.generateTts(text, id)) {
-            const audio = await response.blob();
-            const url = URL.createObjectURL(audio);
-            await new Promise(resolve => {
-                const audioElement = new Audio();
-                audioElement.src = url;
-                audioElement.play();
-                audioElement.onended = () => resolve();
-            });
-            URL.revokeObjectURL(url);
+        const response = await this.fetchTtsGeneration(text, id);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
+
+        const audio = await response.blob();
+        const url = URL.createObjectURL(audio);
+        this.audioElement.src = url;
+        this.audioElement.play();
+        this.audioElement.onended = () => URL.revokeObjectURL(url);
     }
 
     async* fetchTtsGeneration(inputText, voiceId) {

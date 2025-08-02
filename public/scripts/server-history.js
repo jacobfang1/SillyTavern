@@ -46,7 +46,7 @@ function createServerAutocomplete() {
             select: (e, u) => selectServer(e, u, serverLabel),
             minLength: 0,
         })
-        .on('focus', onInputFocus); // <== show tag list on click
+        .focus(onInputFocus); // <== show tag list on click
 }
 
 function onInputFocus() {

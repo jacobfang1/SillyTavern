@@ -1,3 +1,4 @@
+import { SlashCommandNamedArgumentAutoCompleteOption } from '../slash-commands/SlashCommandNamedArgumentAutoCompleteOption.js';
 import { AutoCompleteOption } from './AutoCompleteOption.js';
 
 

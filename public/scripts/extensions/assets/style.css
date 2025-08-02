@@ -65,7 +65,7 @@
 .asset-download-button-text {
     font: bold 20px "Quicksand", san-serif;
     color: #ffffff;
-    transition: all var(--animation-duration-2x);
+    transition: all 0.2s;
 }
 
 .asset-download-button-loading .asset-download-button-text {
